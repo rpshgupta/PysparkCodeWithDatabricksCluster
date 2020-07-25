@@ -1,0 +1,38 @@
+{
+	"name": "creditcards_dataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "creditcards_data_src",
+						"type": "DatasetReference"
+					},
+					"name": "creditcards"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "CreditCards_tgt",
+						"type": "DatasetReference"
+					},
+					"name": "CreditCardsWellsFargo"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DateConv"
+				},
+				{
+					"name": "bankWellsFargo"
+				},
+				{
+					"name": "CardsIssued2012To2017"
+				}
+			],
+			"script": "source(output(\n\t\tCard_Type_Full_Name as string,\n\t\tIssuing_Bank as string,\n\t\tCard_Number as string,\n\t\tCard_Holder_Name as string,\n\t\tCVV_CVV2 as string,\n\t\tIssue_Date as string,\n\t\tExpiry_Date as string,\n\t\tBilling_Date as string,\n\t\tCard_PIN as string,\n\t\tCredit_Limit as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> creditcards\ncreditcards derive(Issue_Date = toDate(Issue_Date, 'mm/yyyy'),\n\t\tExpiry_Date = toDate(Expiry_Date, 'mm/yyyy')) ~> DateConv\nCardsIssued2012To2017 filter(Issuing_Bank=='Wells Fargo') ~> bankWellsFargo\nDateConv filter(year(Issue_Date) >= 2012 && year(Issue_Date) <= 2017) ~> CardsIssued2012To2017\nbankWellsFargo sink(input(\n\t\tCard_Type_Full_Name as string,\n\t\tIssuing_Bank as string,\n\t\tCard_Number as string,\n\t\tCard_Holder_Name as string,\n\t\tCVV_CVV2 as string,\n\t\tIssue_Date as date,\n\t\tExpiry_Date as date,\n\t\tBilling_Date as string,\n\t\tCard_PIN as string,\n\t\tCredit_Limit as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CreditCardsWellsFargo"
+		}
+	}
+}

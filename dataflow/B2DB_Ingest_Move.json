@@ -1,0 +1,35 @@
+{
+	"name": "B2DB_Ingest_Move",
+	"properties": {
+		"folder": {
+			"name": "Maneesh"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "BlobSource_DataSet",
+						"type": "DatasetReference"
+					},
+					"name": "BlobAsSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "B2DB_DataSet",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SurrogateKey1"
+				}
+			],
+			"script": "source(output(\n\t\tCustomerid as integer '000',\n\t\tFirstName as string,\n\t\tMiddleName as string,\n\t\tLastName as string,\n\t\tGender as string,\n\t\tAge as integer '000',\n\t\tAddress as string,\n\t\tcountry as string,\n\t\tmobilenumber as integer '000',\n\t\tCustomerType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmoveFiles: ['my_customer_data.csv','Success/my_customer_data.csv']) ~> BlobAsSource\nBlobAsSource keyGenerate(output(SK_1 as long),\n\tstartAt: 50L) ~> SurrogateKey1\nSurrogateKey1 sink(input(\n\t\tcustomer_sk as integer,\n\t\tcustomerid as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\tgender as string,\n\t\tage as integer,\n\t\tAddres as string,\n\t\tcountry as string,\n\t\tmobileNo as long,\n\t\tcustomertype as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomerid = Customerid,\n\t\tfirstname = FirstName,\n\t\tmiddlename = MiddleName,\n\t\tlastname = LastName,\n\t\tgender = Gender,\n\t\tage = Age,\n\t\tAddres = Address,\n\t\tcountry,\n\t\tmobileNo = mobilenumber,\n\t\tcustomertype = CustomerType,\n\t\tcustomer_sk = SK_1\n\t),\n\tdateFormat:'dd-MM-yyyy',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sink1"
+		}
+	}
+}

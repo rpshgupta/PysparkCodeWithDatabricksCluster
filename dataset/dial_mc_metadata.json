@@ -1,0 +1,58 @@
+{
+	"name": "dial_mc_metadata",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "sourcename",
+				"type": "varchar"
+			},
+			{
+				"name": "sourcetype",
+				"type": "varchar"
+			},
+			{
+				"name": "sourceentityname",
+				"type": "varchar"
+			},
+			{
+				"name": "sourcelocation",
+				"type": "varchar"
+			},
+			{
+				"name": "sourceconnection",
+				"type": "varchar"
+			},
+			{
+				"name": "targetname",
+				"type": "varchar"
+			},
+			{
+				"name": "targettype",
+				"type": "varchar"
+			},
+			{
+				"name": "targetentityname",
+				"type": "varchar"
+			},
+			{
+				"name": "targetlocation",
+				"type": "varchar"
+			},
+			{
+				"name": "targetconnection",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "dial_mc_metadata"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

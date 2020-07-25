@@ -1,0 +1,45 @@
+{
+	"name": "DF_table_join_258",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Src_emp_Data",
+						"type": "DatasetReference"
+					},
+					"name": "SrcOne"
+				},
+				{
+					"dataset": {
+						"referenceName": "Target_table_258",
+						"type": "DatasetReference"
+					},
+					"name": "SrcTwo"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Join_demo_258",
+						"type": "DatasetReference"
+					},
+					"name": "Targetable"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Join1"
+				},
+				{
+					"name": "DerivedColumn1"
+				},
+				{
+					"name": "FilterData"
+				}
+			],
+			"script": "source(output(\n\t\temp_id as integer,\n\t\tLastName as string,\n\t\tFirstName as string,\n\t\tAddress as string,\n\t\tCity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SrcOne\nsource(output(\n\t\temp_id as integer,\n\t\tLastName as string,\n\t\tFirstName as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tsk_key as integer,\n\t\tinsert_date as date,\n\t\tupdate_Date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SrcTwo\nSrcOne, SrcTwo join(SrcOne@emp_id == SrcTwo@emp_id,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join1\nJoin1 derive(full_name = SrcOne@FirstName+SrcTwo@LastName) ~> DerivedColumn1\nDerivedColumn1 filter(SrcOne@emp_id==1) ~> FilterData\nFilterData sink(input(\n\t\temp_id as integer,\n\t\tfull_name as string,\n\t\tsk_key as integer,\n\t\tinsert_date as date,\n\t\tupdate_Date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\temp_id = {SrcOne@emp_id},\n\t\tsk_key,\n\t\tinsert_date,\n\t\tupdate_Date,\n\t\tfull_name\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Targetable"
+		}
+	}
+}

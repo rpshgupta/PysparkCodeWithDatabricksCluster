@@ -1,0 +1,43 @@
+{
+	"name": "pip_calling_adb_notebook02",
+	"properties": {
+		"description": "this is part of scheduling informatica jobs using databricks.",
+		"activities": [
+			{
+				"name": "rg_notebk02",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/rupesh.gupta@nl.abnamro.com/adf_tuto",
+					"baseParameters": {
+						"username": {
+							"value": "dialmcsqlserversbx01-username",
+							"type": "Expression"
+						},
+						"password": {
+							"value": "dialmcsqlserversbx01-password",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "rg_AzureDatabricks",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "RG"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

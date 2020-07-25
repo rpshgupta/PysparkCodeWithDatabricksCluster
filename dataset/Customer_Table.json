@@ -1,0 +1,51 @@
+{
+	"name": "Customer_Table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "CUSTOMER_SK",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "CUSTOMER_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "FIRST_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "LAST_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "GENDER",
+				"type": "char"
+			},
+			{
+				"name": "ADDRESS",
+				"type": "varchar"
+			},
+			{
+				"name": "COUNTRY",
+				"type": "varchar"
+			},
+			{
+				"name": "MOBILE_NO",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "CUSTOMER_TEST_ADF"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

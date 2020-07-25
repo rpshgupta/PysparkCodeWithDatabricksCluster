@@ -1,0 +1,53 @@
+{
+	"name": "pip_calling_adb_notebook01",
+	"properties": {
+		"description": "this is part of scheduling informatica jobs using databricks. This is taking parameter from the pipeline parameter. I am not sure if it can be useful for automation because we should be able to give parameters for pipeline through azure devops.",
+		"activities": [
+			{
+				"name": "rg_notebk02",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/rupesh.gupta@nl.abnamro.com/adf_tuto",
+					"baseParameters": {
+						"username": {
+							"value": "@pipeline().parameters.username",
+							"type": "Expression"
+						},
+						"password": {
+							"value": "@pipeline().parameters.password",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "rg_AzureDatabricks",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"username": {
+				"type": "string",
+				"defaultValue": "dialmcsqlserversbx01-username"
+			},
+			"password": {
+				"type": "string",
+				"defaultValue": "dialmcsqlserversbx01-password"
+			}
+		},
+		"folder": {
+			"name": "RG"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

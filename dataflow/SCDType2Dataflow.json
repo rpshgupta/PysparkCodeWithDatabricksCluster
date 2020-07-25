@@ -1,0 +1,95 @@
+{
+	"name": "SCDType2Dataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "IATAFile",
+						"type": "DatasetReference"
+					},
+					"name": "IATANewFile"
+				},
+				{
+					"dataset": {
+						"referenceName": "IATAConversionDimSynapse",
+						"type": "DatasetReference"
+					},
+					"name": "TargetTableInput"
+				},
+				{
+					"dataset": {
+						"referenceName": "IATAConversionDimSynapse",
+						"type": "DatasetReference"
+					},
+					"name": "MaxKey"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "IATAConversionDimSynapse",
+						"type": "DatasetReference"
+					},
+					"name": "InsertSink"
+				},
+				{
+					"dataset": {
+						"referenceName": "IATAConversionDimSynapse",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateRecords"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AddingHashNew"
+				},
+				{
+					"name": "AddingHashExisting"
+				},
+				{
+					"name": "LookupExistingRecords"
+				},
+				{
+					"name": "Rename"
+				},
+				{
+					"name": "JoinMaxKey"
+				},
+				{
+					"name": "InsertSurrogateKey"
+				},
+				{
+					"name": "SurrogateKeyMeta"
+				},
+				{
+					"name": "SelectForInsert"
+				},
+				{
+					"name": "UpdateRouter"
+				},
+				{
+					"name": "ChangeRecordsUpdateMeta"
+				},
+				{
+					"name": "SelectUpdateRecords"
+				},
+				{
+					"name": "UpdateAlterRow"
+				},
+				{
+					"name": "FilterHashValues"
+				},
+				{
+					"name": "FilterOutOnHash"
+				},
+				{
+					"name": "Cleansing"
+				}
+			],
+			"script": "source(output(\n\t\tIATACode as string,\n\t\tPlaceName as string,\n\t\tCountryName as string,\n\t\tNumberCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> IATANewFile\nsource(output(\n\t\tSurrogateId as decimal(18,0),\n\t\tIATACode as string,\n\t\tPlaceName as string,\n\t\tCountryName as string,\n\t\tNumberCode as integer,\n\t\tEffectiveStartDate as timestamp,\n\t\tEffectiveEndDate as timestamp,\n\t\tActiveIndicator as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT * FROM sample_schema.IATAConversionDim WHERE ActiveIndicator = \\'Y\\'',\n\tformat: 'query',\n\tstaged: false) ~> TargetTableInput\nsource(output(\n\t\tMaxKey as decimal(18,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT isNull(MAX(SurrogateId),0) AS MaxKey FROM sample_schema.IATAConversionDim',\n\tformat: 'query',\n\tstaged: false) ~> MaxKey\nCleansing derive(HashRow = sha2(256,IATACode,PlaceName,CountryName,NumberCode)) ~> AddingHashNew\nRename derive(ExistingHashRow = sha2(256,IATACode_Targ,PlaceName_Targ,CountryName_Targ,NumberCode_Targ)) ~> AddingHashExisting\nAddingHashNew, AddingHashExisting lookup(IATACode == IATACode_Targ,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> LookupExistingRecords\nTargetTableInput select(mapColumn(\n\t\tSurrogateId_Targ = SurrogateId,\n\t\tIATACode_Targ = IATACode,\n\t\tPlaceName_Targ = PlaceName,\n\t\tCountryName_Targ = CountryName,\n\t\tNumberCode_Targ = NumberCode,\n\t\tEffectiveStartDate_Targ = EffectiveStartDate,\n\t\tEffectiveEndDate_Targ = EffectiveEndDate,\n\t\tActiveIndicator_Targ = ActiveIndicator\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Rename\nFilterHashValues, MaxKey join(1==1,\n\tjoinType:'cross',\n\tbroadcast: 'auto')~> JoinMaxKey\nJoinMaxKey keyGenerate(output(NewSurrogateID as long),\n\tstartAt: 1L) ~> InsertSurrogateKey\nInsertSurrogateKey derive(SurrogateId = coalesce(SurrogateId_Targ,NewSurrogateID+MaxKey),\n\t\tEffectiveStartDate = currentTimestamp(),\n\t\tEffectiveEndDate = toTimestamp('2040-12-31 23:59:59'),\n\t\tActiveIndicator = 'Y') ~> SurrogateKeyMeta\nSurrogateKeyMeta select(mapColumn(\n\t\tIATACode,\n\t\tPlaceName,\n\t\tCountryName,\n\t\tNumberCode,\n\t\tSurrogateId,\n\t\tEffectiveStartDate,\n\t\tEffectiveEndDate,\n\t\tActiveIndicator\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectForInsert\nLookupExistingRecords split(!isNull(SurrogateId_Targ),\n\tdisjoint: false) ~> UpdateRouter@(UpdateStream, InsertRecordsIgnoreAlreadyProcessed)\nFilterOutOnHash derive(EffectiveEndDate = currentTimestamp(),\n\t\tActiveIndicator = 'N',\n\t\tEffectiveStartDate = EffectiveStartDate_Targ) ~> ChangeRecordsUpdateMeta\nChangeRecordsUpdateMeta select(mapColumn(\n\t\tIATACode = IATACode_Targ,\n\t\tPlaceName = PlaceName_Targ,\n\t\tCountryName = CountryName_Targ,\n\t\tNumberCode = NumberCode_Targ,\n\t\tSurrogateId = SurrogateId_Targ,\n\t\tEffectiveStartDate,\n\t\tActiveIndicator,\n\t\tEffectiveEndDate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectUpdateRecords\nSelectUpdateRecords alterRow(updateIf(1==1)) ~> UpdateAlterRow\nLookupExistingRecords filter((HashRow!=ExistingHashRow) || isNull(ExistingHashRow)) ~> FilterHashValues\nUpdateRouter@UpdateStream filter(HashRow!=ExistingHashRow) ~> FilterOutOnHash\nIATANewFile derive(IATACode = trim(IATACode),\n\t\tPlaceName = trim(PlaceName),\n\t\tCountryName = trim(CountryName),\n\t\tNumberCode = toInteger(trim(NumberCode))) ~> Cleansing\nSelectForInsert sink(input(\n\t\tSurrogateId as decimal(18,0),\n\t\tIATACode as string,\n\t\tPlaceName as string,\n\t\tCountryName as string,\n\t\tNumberCode as integer,\n\t\tEffectiveStartDate as timestamp,\n\t\tEffectiveEndDate as timestamp,\n\t\tActiveIndicator as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tsaveOrder: 2) ~> InsertSink\nUpdateAlterRow sink(input(\n\t\tSurrogateId as decimal(18,0),\n\t\tIATACode as string,\n\t\tPlaceName as string,\n\t\tCountryName as string,\n\t\tNumberCode as integer,\n\t\tEffectiveStartDate as timestamp,\n\t\tEffectiveEndDate as timestamp,\n\t\tActiveIndicator as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['IATACode','EffectiveStartDate'],\n\tformat: 'table',\n\tstaged: true,\n\tmapColumn(\n\t\tSurrogateId,\n\t\tIATACode,\n\t\tPlaceName,\n\t\tCountryName,\n\t\tNumberCode,\n\t\tEffectiveStartDate,\n\t\tEffectiveEndDate,\n\t\tActiveIndicator\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tsaveOrder: 1) ~> UpdateRecords"
+		}
+	}
+}

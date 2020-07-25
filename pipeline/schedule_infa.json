@@ -1,0 +1,33 @@
+{
+	"name": "schedule_infa",
+	"properties": {
+		"activities": [
+			{
+				"name": "Python1",
+				"type": "DatabricksSparkPython",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pythonFile": "dbfs:/Users/vikrant.badle@nl.abnamro.com/connect_vm",
+					"parameters": []
+				},
+				"linkedServiceName": {
+					"referenceName": "B2DBFS_link",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "Vikrant"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

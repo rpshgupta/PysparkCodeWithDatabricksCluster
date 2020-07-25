@@ -1,0 +1,48 @@
+{
+	"name": "DestinationDataset_ntq",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ID",
+				"type": "smallint",
+				"precision": 5,
+				"scale": 0
+			},
+			{
+				"name": "Name",
+				"type": "varchar",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "Age",
+				"type": "smallint",
+				"precision": 5,
+				"scale": 0
+			},
+			{
+				"name": "Gender",
+				"type": "char",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "Address",
+				"type": "varchar",
+				"precision": 0,
+				"scale": 0
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "shuchi_test"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

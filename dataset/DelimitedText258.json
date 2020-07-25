@@ -1,0 +1,23 @@
+{
+	"name": "DelimitedText258",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage258",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "Emp_Data.txt",
+				"container": "demo258255"
+			},
+			"columnDelimiter": "|",
+			"escapeChar": "\\",
+			"quoteChar": ""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

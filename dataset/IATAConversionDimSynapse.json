@@ -1,0 +1,55 @@
+{
+	"name": "IATAConversionDimSynapse",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSynapseAnalytics1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "SurrogateId",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 0
+			},
+			{
+				"name": "IATACode",
+				"type": "char"
+			},
+			{
+				"name": "PlaceName",
+				"type": "varchar"
+			},
+			{
+				"name": "CountryName",
+				"type": "varchar"
+			},
+			{
+				"name": "NumberCode",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "EffectiveStartDate",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "EffectiveEndDate",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "ActiveIndicator",
+				"type": "char"
+			}
+		],
+		"typeProperties": {
+			"schema": "sample_schema",
+			"table": "IATAConversionDim"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

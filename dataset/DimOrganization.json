@@ -1,0 +1,41 @@
+{
+	"name": "DimOrganization",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSynapseAnalytics1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "OrganizationKey",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ParentOrganizationKey",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "PercentageOfOwnership",
+				"type": "nvarchar"
+			},
+			{
+				"name": "OrganizationName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CurrencyKey",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DimOrganization"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

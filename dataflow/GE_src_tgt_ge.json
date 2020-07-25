@@ -1,0 +1,92 @@
+{
+	"name": "GE_src_tgt_ge",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "emp_Data_src_ge",
+						"type": "DatasetReference"
+					},
+					"name": "sourcege"
+				},
+				{
+					"dataset": {
+						"referenceName": "emp_tgt_ge",
+						"type": "DatasetReference"
+					},
+					"name": "TargetTableSrc"
+				},
+				{
+					"dataset": {
+						"referenceName": "emp_tgt_ge",
+						"type": "DatasetReference"
+					},
+					"name": "sourceSK"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "emp_tgt_ge",
+						"type": "DatasetReference"
+					},
+					"name": "Insertarget"
+				},
+				{
+					"dataset": {
+						"referenceName": "emp_tgt_ge",
+						"type": "DatasetReference"
+					},
+					"name": "TargetUpdate"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Aggregate1"
+				},
+				{
+					"name": "Selectcolumns"
+				},
+				{
+					"name": "JoinSrcTarget"
+				},
+				{
+					"name": "ConditionalSplit1"
+				},
+				{
+					"name": "RenaminTargetColumns"
+				},
+				{
+					"name": "SelectInsertColumns"
+				},
+				{
+					"name": "SurrogateKey1"
+				},
+				{
+					"name": "JoinForMAxKey"
+				},
+				{
+					"name": "DerivedColumn1"
+				},
+				{
+					"name": "Select1"
+				},
+				{
+					"name": "SelectUpdateColumns"
+				},
+				{
+					"name": "AlterRowUpdate"
+				},
+				{
+					"name": "DerivedColumn2"
+				},
+				{
+					"name": "Filter1"
+				}
+			],
+			"script": "source(output(\n\t\temp_id as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\tAddres as string,\n\t\tgrade as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> sourcege\nsource(output(\n\t\tcustomer_sk as integer,\n\t\temp_id as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\tAddres as string,\n\t\tgrade as string,\n\t\tinsert_Date as timestamp,\n\t\tupdate_Date as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> TargetTableSrc\nsource(output(\n\t\tcustomer_sk as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ISNULL(MAX(customer_sk),0) As \\ncustomer_sk \\n FROM dbo.emp_tgt_ge',\n\tformat: 'query') ~> sourceSK\nsourcege aggregate(groupBy(emp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade),\n\temid_Count = count(emp_id)) ~> Aggregate1\nAggregate1 select(mapColumn(\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Selectcolumns\nSelectcolumns, RenaminTargetColumns join(emp_id == emp_id_tgt,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinSrcTarget\nJoinSrcTarget split(isNull(emp_id_tgt),\n\tdisjoint: false) ~> ConditionalSplit1@(InsertFlow, UpdateFlow1)\nTargetTableSrc select(mapColumn(\n\t\tcustomer_sk,\n\t\temp_id_tgt = emp_id,\n\t\tfirstname_tgt = firstname,\n\t\tmiddlename_tgt = middlename,\n\t\tlastname_tgt = lastname,\n\t\tAddres_tgt = Addres,\n\t\tgrade_tgt = grade\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RenaminTargetColumns\nConditionalSplit1@InsertFlow select(mapColumn(\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectInsertColumns\nSelectInsertColumns keyGenerate(output(SK_insert as long),\n\tstartAt: 1L) ~> SurrogateKey1\nSurrogateKey1, sourceSK join(1==1,\n\tjoinType:'cross',\n\tbroadcast: 'auto')~> JoinForMAxKey\nJoinForMAxKey derive(sk_key_Final = SK_insert + customer_sk,\n\t\tinsert_Date = currentTimestamp(),\n\t\tupdate_Date = currentTimestamp()) ~> DerivedColumn1\nDerivedColumn1 select(mapColumn(\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade,\n\t\tSK_insert,\n\t\tcustomer_sk,\n\t\tsk_key_Final,\n\t\tinsert_Date,\n\t\tupdate_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nFilter1 select(mapColumn(\n\t\tcustomer_sk,\n\t\temp_id = emp_id_tgt,\n\t\tfirstname = firstname_tgt,\n\t\tmiddlename = middlename_tgt,\n\t\tlastname = lastname_tgt,\n\t\tAddres,\n\t\tgrade\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectUpdateColumns\nDerivedColumn2 alterRow(updateIf(1==1)) ~> AlterRowUpdate\nSelectUpdateColumns derive(update_date = currentTimestamp()) ~> DerivedColumn2\nConditionalSplit1@UpdateFlow1 filter(Addres!=Addres_tgt || grade != grade_tgt) ~> Filter1\nSelect1 sink(input(\n\t\tcustomer_sk as integer,\n\t\temp_id as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\tAddres as string,\n\t\tgrade as string,\n\t\tinsert_Date as timestamp,\n\t\tupdate_Date as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_sk = sk_key_Final,\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade,\n\t\tinsert_Date,\n\t\tupdate_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Insertarget\nAlterRowUpdate sink(input(\n\t\tcustomer_sk as integer,\n\t\temp_id as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\tAddres as string,\n\t\tgrade as string,\n\t\tinsert_Date as timestamp,\n\t\tupdate_Date as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['emp_id'],\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_sk,\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade,\n\t\tupdate_Date = update_date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> TargetUpdate"
+		}
+	}
+}

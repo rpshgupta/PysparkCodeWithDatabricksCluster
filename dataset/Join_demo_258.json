@@ -1,0 +1,40 @@
+{
+	"name": "Join_demo_258",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "emp_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "full_name",
+				"type": "varchar"
+			},
+			{
+				"name": "sk_key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "insert_date",
+				"type": "date"
+			},
+			{
+				"name": "update_Date",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "emp_data_join"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

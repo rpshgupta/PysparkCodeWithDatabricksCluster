@@ -1,0 +1,58 @@
+{
+	"name": "CreditCards_tgt",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSynapseAnalytics1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "Card_Type_Full_Name",
+				"type": "varchar"
+			},
+			{
+				"name": "Issuing_Bank",
+				"type": "varchar"
+			},
+			{
+				"name": "Card_Number",
+				"type": "varchar"
+			},
+			{
+				"name": "Card_Holder_Name",
+				"type": "varchar"
+			},
+			{
+				"name": "CVV_CVV2",
+				"type": "varchar"
+			},
+			{
+				"name": "Issue_Date",
+				"type": "date"
+			},
+			{
+				"name": "Expiry_Date",
+				"type": "date"
+			},
+			{
+				"name": "Billing_Date",
+				"type": "varchar"
+			},
+			{
+				"name": "Card_PIN",
+				"type": "varchar"
+			},
+			{
+				"name": "Credit_Limit",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "sample_schema",
+			"table": "creditcards_adf"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

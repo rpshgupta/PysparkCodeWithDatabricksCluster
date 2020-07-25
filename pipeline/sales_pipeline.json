@@ -1,0 +1,57 @@
+{
+	"name": "sales_pipeline",
+	"properties": {
+		"description": "A pipeline that run the \"load_sales_data\" dataflow activity.",
+		"activities": [
+			{
+				"name": "load_sales_data",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "load_sales_data",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "AzureDataLakeStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "dial-mc-container-sbx-01/Sales"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"sourcename": {
+				"type": "string",
+				"defaultValue": "Null"
+			},
+			"sourcetype": {
+				"type": "string",
+				"defaultValue": "Null"
+			},
+			"sourceenetityname": {
+				"type": "string",
+				"defaultValue": "Null"
+			}
+		},
+		"folder": {
+			"name": "Veera"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

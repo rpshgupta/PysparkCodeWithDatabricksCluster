@@ -1,0 +1,40 @@
+{
+	"name": "ADLS_CP_src",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "src_copy",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Amrapali"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "customer.csv",
+				"folderPath": "Team-A-POC/customer",
+				"container": "dial-mc-container-sbx-01"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

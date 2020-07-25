@@ -1,0 +1,29 @@
+{
+	"name": "data_copy",
+	"properties": {
+		"description": "Copying data from file to SQL DB.",
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Source_Customer_File",
+						"type": "DatasetReference"
+					},
+					"name": "ReadSourceFile"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Customer_Table",
+						"type": "DatasetReference"
+					},
+					"name": "LoadData"
+				}
+			],
+			"transformations": [],
+			"script": "source(output(\n\t\tCustomerID as string,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tGender as string,\n\t\tAddress as string,\n\t\tCountry as string,\n\t\tMobileNo as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ReadSourceFile\nReadSourceFile sink(input(\n\t\tCUSTOMER_SK as integer,\n\t\tCUSTOMER_ID as string,\n\t\tFIRST_NAME as string,\n\t\tLAST_NAME as string,\n\t\tGENDER as string,\n\t\tADDRESS as string,\n\t\tCOUNTRY as string,\n\t\tMOBILE_NO as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tCUSTOMER_ID = CustomerID,\n\t\tFIRST_NAME = FirstName,\n\t\tLAST_NAME = LastName,\n\t\tGENDER = Gender,\n\t\tADDRESS = Address,\n\t\tCOUNTRY = Country,\n\t\tMOBILE_NO = MobileNo\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> LoadData"
+		}
+	}
+}

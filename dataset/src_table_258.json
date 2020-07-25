@@ -1,0 +1,42 @@
+{
+	"name": "src_table_258",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "TargetName",
+				"type": "varchar"
+			},
+			{
+				"name": "TargetAttribute",
+				"type": "varchar"
+			},
+			{
+				"name": "SourceName",
+				"type": "varchar"
+			},
+			{
+				"name": "SourceAttribute",
+				"type": "varchar"
+			},
+			{
+				"name": "usecase",
+				"type": "varchar"
+			},
+			{
+				"name": "InDS_Name",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "AttributeMapping"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,29 @@
+{
+	"name": "load_sales_data",
+	"properties": {
+		"description": "This is an ADF Dataflow to load sample Sales data from ADLS-G2 to Synapse. - Veera",
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "sales_data",
+						"type": "DatasetReference"
+					},
+					"name": "flatfileSales"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "SalesTarget",
+						"type": "DatasetReference"
+					},
+					"name": "SinkSalesTarget"
+				}
+			],
+			"transformations": [],
+			"script": "source(output(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string,\n\t\tColumn_5 as string,\n\t\tColumn_6 as string,\n\t\tColumn_7 as string,\n\t\tColumn_8 as string,\n\t\tColumn_9 as string,\n\t\tColumn_10 as string,\n\t\tColumn_11 as string,\n\t\tColumn_12 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> flatfileSales\nflatfileSales sink(input(\n\t\tTransaction_date as string,\n\t\tProduct as string,\n\t\tPrice as string,\n\t\tPayment_Type as string,\n\t\tName as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tCountry as string,\n\t\tAccount_Created as string,\n\t\tLast_Login as string,\n\t\tLatitude as string,\n\t\tLongitude as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SinkSalesTarget"
+		}
+	}
+}

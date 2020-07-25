@@ -1,0 +1,11 @@
+{
+	"name": "AKV_LinkedService",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://sandbox-nl02327-001-kv.vault.azure.net/"
+		}
+	}
+}

@@ -1,0 +1,24 @@
+{
+	"name": "Schd_Synapse_Pause_8PM",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Pause_Synapse",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Hour",
+				"interval": 24,
+				"startTime": "2020-07-03T18:00:00Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}

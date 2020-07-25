@@ -1,0 +1,52 @@
+{
+	"name": "tgt_copy",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "tgt_copy",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Amrapali"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "CustomerSK",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Customerid",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "First_name",
+				"type": "varchar"
+			},
+			{
+				"name": "Middle_name",
+				"type": "varchar"
+			},
+			{
+				"name": "Last_name",
+				"type": "varchar"
+			},
+			{
+				"name": "Gender",
+				"type": "varchar"
+			},
+			{
+				"name": "age",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "customer_76161"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

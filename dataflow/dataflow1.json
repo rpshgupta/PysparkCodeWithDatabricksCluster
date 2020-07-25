@@ -1,0 +1,35 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Src_emp_Data",
+						"type": "DatasetReference"
+					},
+					"name": "Srctable"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Target_table_258",
+						"type": "DatasetReference"
+					},
+					"name": "TargetTable"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Expressiontranformation"
+				},
+				{
+					"name": "SurrogateKey1"
+				}
+			],
+			"script": "source(output(\n\t\temp_id as integer,\n\t\tLastName as string,\n\t\tFirstName as string,\n\t\tAddress as string,\n\t\tCity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> Srctable\nSrctable derive(insert_Date = currentDate(),\n\t\tupdate_Date = currentDate()) ~> Expressiontranformation\nExpressiontranformation keyGenerate(output(sk_key as long),\n\tstartAt: 1L) ~> SurrogateKey1\nSurrogateKey1 sink(input(\n\t\temp_id as integer,\n\t\tLastName as string,\n\t\tFirstName as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tsk_key as integer,\n\t\tinsert_date as date,\n\t\tupdate_Date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\temp_id,\n\t\tLastName,\n\t\tFirstName,\n\t\tAddress,\n\t\tCity,\n\t\tsk_key,\n\t\tinsert_date = insert_Date,\n\t\tupdate_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> TargetTable"
+		}
+	}
+}

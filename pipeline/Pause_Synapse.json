@@ -1,0 +1,75 @@
+{
+	"name": "Pause_Synapse",
+	"properties": {
+		"activities": [
+			{
+				"name": "Check_Synapse_Status",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://management.azure.com/subscriptions/3a89d508-f992-4729-9058-ba4fae9a35ca/resourceGroups/sandbox-nl02327-001-rg/providers/Microsoft.Sql/servers/dialmcsqlserversbx01/databases/dial-mc-sqlpool-sbx-01/?api-version=2014-04-01",
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://management.core.windows.net/"
+					}
+				}
+			},
+			{
+				"name": "Act_on_Status",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Check_Synapse_Status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(activity('Check_Synapse_Status').output.properties.status, 'Paused'))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "SynapsePause",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://management.azure.com/subscriptions/3a89d508-f992-4729-9058-ba4fae9a35ca/resourceGroups/sandbox-nl02327-001-rg/providers/Microsoft.Sql/servers/dialmcsqlserversbx01/databases/dial-mc-sqlpool-sbx-01/pause?api-version=2014-04-01-preview",
+								"method": "POST",
+								"authentication": {
+									"type": "MSI",
+									"resource": "https://management.core.windows.net/"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "Veera"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

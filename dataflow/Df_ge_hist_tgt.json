@@ -1,0 +1,105 @@
+{
+	"name": "Df_ge_hist_tgt",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "emp_tgt_ge",
+						"type": "DatasetReference"
+					},
+					"name": "sourceTGTSCD1"
+				},
+				{
+					"dataset": {
+						"referenceName": "emp_Hist_ge",
+						"type": "DatasetReference"
+					},
+					"name": "TargetSrc"
+				},
+				{
+					"dataset": {
+						"referenceName": "emp_Hist_ge",
+						"type": "DatasetReference"
+					},
+					"name": "sourceSkTgt"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "emp_Hist_ge",
+						"type": "DatasetReference"
+					},
+					"name": "TargetInsert"
+				},
+				{
+					"dataset": {
+						"referenceName": "emp_Hist_ge",
+						"type": "DatasetReference"
+					},
+					"name": "InsertUpdate"
+				},
+				{
+					"dataset": {
+						"referenceName": "emp_Hist_ge",
+						"type": "DatasetReference"
+					},
+					"name": "UpdatePreviousRec"
+				}
+			],
+			"transformations": [
+				{
+					"name": "RenameTgT"
+				},
+				{
+					"name": "DerivedColumn2"
+				},
+				{
+					"name": "JoinSrcAndTarget"
+				},
+				{
+					"name": "ConditionalSplit1"
+				},
+				{
+					"name": "SelectFilterTgtColumns"
+				},
+				{
+					"name": "DeriveColumnFlag"
+				},
+				{
+					"name": "JoinSkInsert"
+				},
+				{
+					"name": "DerCoFinal"
+				},
+				{
+					"name": "SurrogateKey1"
+				},
+				{
+					"name": "ConditionalSplitUpdate"
+				},
+				{
+					"name": "SelectForOldRecords"
+				},
+				{
+					"name": "DerivedColumn3"
+				},
+				{
+					"name": "Select1"
+				},
+				{
+					"name": "DerivedColumn4"
+				},
+				{
+					"name": "Select2"
+				},
+				{
+					"name": "AlterRow1"
+				}
+			],
+			"script": "source(output(\n\t\tcustomer_sk as integer,\n\t\temp_id as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\tAddres as string,\n\t\tgrade as string,\n\t\tinsert_Date as timestamp,\n\t\tupdate_Date as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> sourceTGTSCD1\nsource(output(\n\t\tcustomer_sk as integer,\n\t\temp_id as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\taddres as string,\n\t\tgrade as string,\n\t\tinsert_Date as timestamp,\n\t\tupdate_Date as timestamp,\n\t\tcurr_Flg as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select distinct customer_sk,\\nemp_id,\\nfirstname,\\nmiddlename,\\nlastname,\\naddres,\\ngrade,\\ninsert_Date,\\nupdate_Date,\\ncurr_Flg\\nfrom emp_hist_tgt_ge\\nwhere curr_flg=\\'Y\\'',\n\tformat: 'query') ~> TargetSrc\nsource(output(\n\t\tcustomer_sk_src as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ISNULL(MAX(customer_sk),0) As \\ncustomer_sk_src \\n FROM dbo.emp_hist_tgt_ge',\n\tformat: 'query') ~> sourceSkTgt\nTargetSrc select(mapColumn(\n\t\tcustomer_sk_tgt = customer_sk,\n\t\temp_id_tgt = emp_id,\n\t\tfirstname_tgt = firstname,\n\t\tmiddlename_tgt = middlename,\n\t\tlastname_tgt = lastname,\n\t\tAddres_tgt = addres,\n\t\tgrade_tgt = grade,\n\t\tinsert_Date_tgt = insert_Date,\n\t\tupdate_Date_tgt = update_Date,\n\t\tCurr_flg_tgt = curr_Flg\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RenameTgT\nsourceTGTSCD1 derive(CDC_SRC_LATEST = md5(Addres+grade)) ~> DerivedColumn2\nDerivedColumn2, RenameTgT join(emp_id == emp_id_tgt,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinSrcAndTarget\nJoinSrcAndTarget split(isNull(emp_id_tgt),\n\tdisjoint: false) ~> ConditionalSplit1@(INSERT, UPSERT)\nConditionalSplit1@INSERT select(mapColumn(\n\t\tcustomer_sk,\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade,\n\t\tcustomer_sk_tgt\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectFilterTgtColumns\nSelectFilterTgtColumns derive(Insert_Date = currentTimestamp(),\n\t\tUpdate_Date = currentTimestamp(),\n\t\tcurr_flag = 'Y') ~> DeriveColumnFlag\nDeriveColumnFlag, sourceSkTgt join(1==1,\n\tjoinType:'cross',\n\tbroadcast: 'auto')~> JoinSkInsert\nSurrogateKey1 derive(SkFinalInsert = coalesce(customer_sk_tgt,TranformationSkId+customer_sk_src)) ~> DerCoFinal\nJoinSkInsert keyGenerate(output(TranformationSkId as long),\n\tstartAt: 1L) ~> SurrogateKey1\nSelectForOldRecords split(Addres!=Addres_tgt||grade_tgt!=grade,\n\tdisjoint: false) ~> ConditionalSplitUpdate@(INSERTFLOW, UPDATEPREVIOUSREC)\nConditionalSplit1@UPSERT select(mapColumn(\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade,\n\t\tcustomer_sk_tgt,\n\t\temp_id_tgt,\n\t\tAddres_tgt,\n\t\tgrade_tgt,\n\t\tinsert_Date_tgt\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectForOldRecords\nConditionalSplitUpdate@INSERTFLOW derive(curr_flg_insert = 'Y',\n\t\tupdate_Date_insert = currentTimestamp(),\n\t\tinsert_Date_inserT = currentTimestamp()) ~> DerivedColumn3\nDerivedColumn3 select(mapColumn(\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade,\n\t\tcustomer_sk_tgt,\n\t\temp_id_tgt,\n\t\tcurr_flg_insert,\n\t\tupdate_Date_insert,\n\t\tinsert_Date_tgt\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nConditionalSplitUpdate@UPDATEPREVIOUSREC derive(curr_flg_update = 'N',\n\t\tupdate_Date_update = currentTimestamp()) ~> DerivedColumn4\nDerivedColumn4 select(mapColumn(\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade,\n\t\tcustomer_sk_tgt,\n\t\temp_id_tgt,\n\t\tAddres_tgt,\n\t\tgrade_tgt,\n\t\tcurr_flg_update,\n\t\tupdate_Date_update,\n\t\tinsert_Date = insert_Date_tgt\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select2\nSelect2 alterRow(updateIf(true())) ~> AlterRow1\nDerCoFinal sink(input(\n\t\tcustomer_sk as integer,\n\t\temp_id as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\tAddres as string,\n\t\tgrade as string,\n\t\tinsert_Date as timestamp,\n\t\tupdate_Date as timestamp,\n\t\tCurr_flg as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_sk = SkFinalInsert,\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade,\n\t\tinsert_Date = Insert_Date,\n\t\tupdate_Date = Update_Date,\n\t\tCurr_flg = curr_flag\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tsaveOrder: 2) ~> TargetInsert\nSelect1 sink(input(\n\t\tcustomer_sk as integer,\n\t\temp_id as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\tAddres as string,\n\t\tgrade as string,\n\t\tinsert_Date as timestamp,\n\t\tupdate_Date as timestamp,\n\t\tCurr_flg as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_sk = customer_sk_tgt,\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade,\n\t\tinsert_Date = insert_Date_tgt,\n\t\tupdate_Date = update_Date_insert,\n\t\tCurr_flg = curr_flg_insert\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tsaveOrder: 3) ~> InsertUpdate\nAlterRow1 sink(input(\n\t\tcustomer_sk as integer,\n\t\temp_id as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\tAddres as string,\n\t\tgrade as string,\n\t\tinsert_Date as timestamp,\n\t\tupdate_Date as timestamp,\n\t\tCurr_flg as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['emp_id','insert_Date'],\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_sk = customer_sk_tgt,\n\t\temp_id,\n\t\tfirstname,\n\t\tmiddlename,\n\t\tlastname,\n\t\tAddres,\n\t\tgrade,\n\t\tupdate_Date = update_Date_update,\n\t\tCurr_flg = curr_flg_update,\n\t\tinsert_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tsaveOrder: 1) ~> UpdatePreviousRec"
+		}
+	}
+}

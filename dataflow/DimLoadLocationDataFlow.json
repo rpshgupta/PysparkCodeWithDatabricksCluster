@@ -1,0 +1,89 @@
+{
+	"name": "DimLoadLocationDataFlow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "FinDataSynapse",
+						"type": "DatasetReference"
+					},
+					"name": "SynapseLoadTable"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSynapseAnalyticsTable2",
+						"type": "DatasetReference"
+					},
+					"name": "TargetDimTab"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSynapseAnalyticsTable2",
+						"type": "DatasetReference"
+					},
+					"name": "MaxSurrogateKey"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSynapseAnalyticsTable2",
+						"type": "DatasetReference"
+					},
+					"name": "InsertTarget"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSynapseAnalyticsTable2",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateTarget"
+				}
+			],
+			"transformations": [
+				{
+					"name": "JoinOdsToTarg"
+				},
+				{
+					"name": "NULLsplit"
+				},
+				{
+					"name": "SelectTheInsertRecords"
+				},
+				{
+					"name": "RenameTarg"
+				},
+				{
+					"name": "SelectTheUpdateRecords"
+				},
+				{
+					"name": "AlterRowUpdate"
+				},
+				{
+					"name": "FinalSurrogateMetadata"
+				},
+				{
+					"name": "AddMetaData"
+				},
+				{
+					"name": "GenerateSurrogateKey"
+				},
+				{
+					"name": "DistinctRows"
+				},
+				{
+					"name": "DimSelect"
+				},
+				{
+					"name": "JoinToMaxkey"
+				},
+				{
+					"name": "InsertSelect"
+				}
+			],
+			"script": "source(output(\n\t\tpolicyID as integer,\n\t\tstatecode as string,\n\t\tcounty as string,\n\t\teq_site_limit as double,\n\t\thu_site_limit as double,\n\t\tfl_site_limit as double,\n\t\tfr_site_limit as double,\n\t\ttiv_2011 as double,\n\t\ttiv_2012 as double,\n\t\teq_site_deductible as double,\n\t\thu_site_deductible as double,\n\t\tfl_site_deductible as integer,\n\t\tfr_site_deductible as boolean,\n\t\tpoint_latitude as double,\n\t\tpoint_longitude as double,\n\t\tline as string,\n\t\tconstruction as string,\n\t\tpoint_granularity as short\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: false) ~> SynapseLoadTable\nsource(output(\n\t\tLocationId as decimal(18,0),\n\t\tstatecode as string,\n\t\tcounty as string,\n\t\tpoint_latitude as decimal(9,6),\n\t\tpoint_longitude as decimal(9,6),\n\t\tAddTd as timestamp,\n\t\tLoadTd as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: false) ~> TargetDimTab\nsource(output(\n\t\tMaxLocationId as decimal(18,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ISNULL(MAX(LocationId),0) As MaxLocationId FROM sample_schema.FinDataLocDim',\n\tformat: 'query',\n\tstaged: false) ~> MaxSurrogateKey\nDimSelect, RenameTarg join(point_longitude == point_longitude_targ\n\t&& point_latitude == point_latitude_targ,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinOdsToTarg\nJoinOdsToTarg split(isNull(point_latitude_targ) && isNull(point_longitude_targ),\n\tdisjoint: false) ~> NULLsplit@(SynapseNull, SynapseNotNull)\nNULLsplit@SynapseNull select(mapColumn(\n\t\tstatecode,\n\t\tcounty,\n\t\tpoint_latitude,\n\t\tpoint_longitude\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectTheInsertRecords\nTargetDimTab select(mapColumn(\n\t\tstatecode_targ = statecode,\n\t\tLocationId_Targ = LocationId,\n\t\tcounty_targ = county,\n\t\tpoint_latitude_targ = point_latitude,\n\t\tpoint_longitude_targ = point_longitude,\n\t\tAddTd,\n\t\tLoadTd\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RenameTarg\nNULLsplit@SynapseNotNull select(mapColumn(\n\t\tstatecode = statecode_targ,\n\t\tLocationId = LocationId_Targ,\n\t\tcounty = county_targ,\n\t\tpoint_latitude = point_latitude_targ,\n\t\tpoint_longitude = point_longitude_targ,\n\t\tAddTd\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectTheUpdateRecords\nAddMetaData alterRow(updateIf(1==1)) ~> AlterRowUpdate\nJoinToMaxkey derive(AddTd = currentTimestamp(),\n\t\tLocationId = LocationId+MaxLocationId,\n\t\tLoadTd = currentTimestamp()) ~> FinalSurrogateMetadata\nSelectTheUpdateRecords derive(LoadTd = currentTimestamp()) ~> AddMetaData\nSelectTheInsertRecords keyGenerate(output(LocationId as long),\n\tstartAt: 1L) ~> GenerateSurrogateKey\nSynapseLoadTable aggregate(groupBy(statecode,\n\t\tcounty,\n\t\tpoint_latitude,\n\t\tpoint_longitude),\n\tstatecodeCount = count(county)) ~> DistinctRows\nDistinctRows select(mapColumn(\n\t\tstatecode,\n\t\tcounty,\n\t\tpoint_latitude,\n\t\tpoint_longitude\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DimSelect\nGenerateSurrogateKey, MaxSurrogateKey join(1==1,\n\tjoinType:'cross',\n\tbroadcast: 'auto')~> JoinToMaxkey\nFinalSurrogateMetadata select(mapColumn(\n\t\tstatecode,\n\t\tcounty,\n\t\tpoint_latitude,\n\t\tpoint_longitude,\n\t\tLocationId,\n\t\tAddTd,\n\t\tLoadTd\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> InsertSelect\nInsertSelect sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> InsertTarget\nAlterRowUpdate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['point_latitude','point_longitude'],\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> UpdateTarget"
+		}
+	}
+}

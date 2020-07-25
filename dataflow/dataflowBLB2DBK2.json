@@ -1,0 +1,32 @@
+{
+	"name": "dataflowBLB2DBK2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "raw_datasetk2",
+						"type": "DatasetReference"
+					},
+					"name": "sourceblb"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DImCustomerK2",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SurrogateKey1"
+				}
+			],
+			"script": "source(output(\n\t\tCustomerid as integer,\n\t\tFirstName as string,\n\t\tMiddleName as string,\n\t\tLastName as string,\n\t\tGender as string,\n\t\tAge as integer,\n\t\tAddress as string,\n\t\tcountry as string,\n\t\tmobilenumber as double,\n\t\tCustomerType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmoveFiles: ['','my258255container']) ~> sourceblb\nsourceblb keyGenerate(output(sk_key as long),\n\tstartAt: 1L) ~> SurrogateKey1\nSurrogateKey1 sink(input(\n\t\tcustomer_sk as integer,\n\t\tcustomerid as integer,\n\t\tfirstname as string,\n\t\tmiddlename as string,\n\t\tlastname as string,\n\t\tgender as string,\n\t\tage as integer,\n\t\tAddres as string,\n\t\tcountry as string,\n\t\tmobileNo as long,\n\t\tcustomertype as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_sk = sk_key,\n\t\tcustomerid = Customerid,\n\t\tfirstname = FirstName,\n\t\tmiddlename = MiddleName,\n\t\tlastname = LastName,\n\t\tgender = Gender,\n\t\tage = Age,\n\t\tAddres = Address,\n\t\tcountry,\n\t\tmobileNo = mobilenumber,\n\t\tcustomertype = CustomerType\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sink1"
+		}
+	}
+}

@@ -1,0 +1,66 @@
+{
+	"name": "SalesTarget",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSynapseAnalytics1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "Transaction_date",
+				"type": "varchar"
+			},
+			{
+				"name": "Product",
+				"type": "varchar"
+			},
+			{
+				"name": "Price",
+				"type": "varchar"
+			},
+			{
+				"name": "Payment_Type",
+				"type": "varchar"
+			},
+			{
+				"name": "Name",
+				"type": "varchar"
+			},
+			{
+				"name": "City",
+				"type": "varchar"
+			},
+			{
+				"name": "State",
+				"type": "varchar"
+			},
+			{
+				"name": "Country",
+				"type": "varchar"
+			},
+			{
+				"name": "Account_Created",
+				"type": "varchar"
+			},
+			{
+				"name": "Last_Login",
+				"type": "varchar"
+			},
+			{
+				"name": "Latitude",
+				"type": "varchar"
+			},
+			{
+				"name": "Longitude",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "sample_schema",
+			"table": "sales"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

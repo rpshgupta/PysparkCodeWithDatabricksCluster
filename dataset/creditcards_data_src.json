@@ -1,0 +1,66 @@
+{
+	"name": "creditcards_data_src",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "CreditCard_Data_UTF8.txt",
+				"folderPath": "CreditCards",
+				"fileSystem": "dial-mc-container-sbx-01"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "Card_Type_Full_Name",
+				"type": "String"
+			},
+			{
+				"name": "Issuing_Bank",
+				"type": "String"
+			},
+			{
+				"name": "Card_Number",
+				"type": "String"
+			},
+			{
+				"name": "Card_Holder_Name",
+				"type": "String"
+			},
+			{
+				"name": "CVV_CVV2",
+				"type": "String"
+			},
+			{
+				"name": "Issue_Date",
+				"type": "String"
+			},
+			{
+				"name": "Expiry_Date",
+				"type": "String"
+			},
+			{
+				"name": "Billing_Date",
+				"type": "String"
+			},
+			{
+				"name": "Card_PIN",
+				"type": "String"
+			},
+			{
+				"name": "Credit_Limit",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

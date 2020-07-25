@@ -1,0 +1,34 @@
+{
+	"name": "ftr_tgt",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ftr_src",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Amrapali"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "name",
+				"type": "varchar"
+			},
+			{
+				"name": "location",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "ftr_tgt"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

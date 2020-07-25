@@ -1,0 +1,97 @@
+{
+	"name": "filelist_dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "sampledir",
+				"fileSystem": "dial-mc-container-sbx-01"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "policyID",
+				"type": "String"
+			},
+			{
+				"name": "statecode",
+				"type": "String"
+			},
+			{
+				"name": "county",
+				"type": "String"
+			},
+			{
+				"name": "eq_site_limit",
+				"type": "String"
+			},
+			{
+				"name": "hu_site_limit",
+				"type": "String"
+			},
+			{
+				"name": "fl_site_limit",
+				"type": "String"
+			},
+			{
+				"name": "fr_site_limit",
+				"type": "String"
+			},
+			{
+				"name": "tiv_2011",
+				"type": "String"
+			},
+			{
+				"name": "tiv_2012",
+				"type": "String"
+			},
+			{
+				"name": "eq_site_deductible",
+				"type": "String"
+			},
+			{
+				"name": "hu_site_deductible",
+				"type": "String"
+			},
+			{
+				"name": "fl_site_deductible",
+				"type": "String"
+			},
+			{
+				"name": "fr_site_deductible",
+				"type": "String"
+			},
+			{
+				"name": "point_latitude",
+				"type": "String"
+			},
+			{
+				"name": "point_longitude",
+				"type": "String"
+			},
+			{
+				"name": "line",
+				"type": "String"
+			},
+			{
+				"name": "construction",
+				"type": "String"
+			},
+			{
+				"name": "point_granularity",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,56 @@
+{
+	"name": "archieved",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "blobarchive",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Amrapali"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "archieved.csv",
+				"container": "archieved"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "CustomerSK",
+				"type": "String"
+			},
+			{
+				"name": "CustomerID",
+				"type": "String"
+			},
+			{
+				"name": "Firstname",
+				"type": "String"
+			},
+			{
+				"name": "Middlename",
+				"type": "String"
+			},
+			{
+				"name": "LastName",
+				"type": "String"
+			},
+			{
+				"name": "Gender",
+				"type": "String"
+			},
+			{
+				"name": "Age",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

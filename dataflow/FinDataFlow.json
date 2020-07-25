@@ -1,0 +1,28 @@
+{
+	"name": "FinDataFlow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					},
+					"name": "FinDataSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "FinDataSynapse",
+						"type": "DatasetReference"
+					},
+					"name": "FinDataTarget"
+				}
+			],
+			"transformations": [],
+			"script": "source(output(\n\t\tpolicyID as integer,\n\t\tstatecode as string,\n\t\tcounty as string,\n\t\teq_site_limit as double,\n\t\thu_site_limit as double,\n\t\tfl_site_limit as double,\n\t\tfr_site_limit as double,\n\t\ttiv_2011 as double,\n\t\ttiv_2012 as double,\n\t\teq_site_deductible as double,\n\t\thu_site_deductible as double,\n\t\tfl_site_deductible as integer,\n\t\tfr_site_deductible as boolean,\n\t\tpoint_latitude as double,\n\t\tpoint_longitude as double,\n\t\tline as string,\n\t\tconstruction as string,\n\t\tpoint_granularity as short\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FinDataSource\nFinDataSource sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FinDataTarget"
+		}
+	}
+}
