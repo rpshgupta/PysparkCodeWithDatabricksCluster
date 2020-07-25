@@ -4,7 +4,7 @@
 		"description": "this is part of scheduling informatica jobs using databricks.",
 		"activities": [
 			{
-				"name": "rg_notebk02",
+				"name": "rg_notebk03",
 				"type": "DatabricksNotebook",
 				"dependsOn": [],
 				"policy": {
